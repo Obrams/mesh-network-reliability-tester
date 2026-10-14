@@ -107,8 +107,11 @@ jobs:
           timeout 60 bash -c 'until wget -q --spider http://localhost:8123/ping; do sleep 1; done'
 
       - name: Run integration tests
+        # exit code 5 = no tests collected; treat as a no-op until integration tests are added
         run: |
-          pytest -m "integration" -v
+          pytest -m "integration" -v; rc=$?
+          if [ "$rc" -eq 5 ]; then echo "::notice::No tests marked @pytest.mark.integration yet - skipping"; exit 0; fi
+          exit $rc
         env:
           CLICKHOUSE_HOST: localhost
           CLICKHOUSE_PORT: 9000
